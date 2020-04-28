@@ -45,12 +45,21 @@
 </template>
 
 <script>
+import { reactive,ref,isRef,toRef,onMounted,watch} from '@vue/composition-api'
 import { validataEmail,validataPassword,validataCode,stripscript } from 'utils/validata'
 export default {
   name: 'login',
-  data() {
-    // 验证用户名
-    var validateUsername = (rule, value, callback) => {
+  setup(prop,{refs}){
+  /**
+    setup(props, context){
+    attrs: (...) == this.$attrs
+    emit: (...) == this.$emit
+    listeners: (...) == this.$listeners
+    parent: (...) == this.$parent
+    refs: (...) == this.$refs
+    root: (...) == this
+    */
+    let validateUsername = (rule, value, callback) => {
       if (value === '') {
         callback(new Error('请输入用户名'));
       } else if (validataEmail(value)) {
@@ -61,8 +70,8 @@ export default {
       
     };
     // 验证密码
-    var validatePassword = (rule, value, callback) => {
-      if(this.ruleForm.password != stripscript(value) ){
+    let validatePassword = (rule, value, callback) => {
+      if(ruleForm.password != stripscript(value) ){
         callback(new Error('密码包含非法字符，请重新输入！'))
       }else{
         if (value === '') {
@@ -75,15 +84,15 @@ export default {
       }
     };
     // 注册二次验证
-    var validatePasswords = (rule, value, callback) => {
-     if(this.ruleForm.password != this.ruleForm.passwords){
+    let validatePasswords = (rule, value, callback) => {
+     if(ruleForm.password != ruleForm.passwords){
        callback(new Error('两次输入密码不一致，请重新输入'))
      }else{
        callback();
      }
     };
     // 验证码
-    var checkCode = (rule, value, callback) => {
+    let checkCode = (rule, value, callback) => {
       if (value === '') {
         return callback(new Error('请输入验证码'));
       }else if(validataCode(value)){
@@ -92,47 +101,48 @@ export default {
         callback()
       }
     };
-    return {
-      ruleForm: {
+    /**
+     * ********************************************************************************************************************************
+     * 声明变量
+     */
+    // 这里面放置data数据、生命周期、自定义的函数
+    const menuTab = reactive([
+        { txt: '登录', current: true ,type:'login' },
+        { txt: '注册', current: false , type:'register'}
+      ]);
+    
+    const model = ref('login');
+
+    const ruleForm = reactive({
         username: '',
         password: '',
         passwords: '',
         code: ''
-      },
-      rules: {
-        username: [
-          { validator: validateUsername, trigger: 'blur' }
-        ],
-        password: [
-          { validator: validatePassword, trigger: 'blur' }
-        ],
-        passwords: [
-          { validator: validatePasswords, trigger: 'blur' }
-        ],
-        code: [
-          { validator: checkCode, trigger: 'blur' }
-        ]
-      },
-      model : 'login',
-      menuTab: [
-        { txt: '登录', current: true ,type:'login' },
-        { txt: '注册', current: false , type:'register'}
-      ]
-    }
-  },
-  methods: {
-  selectTab(data) {
+      });
+    
+    const rules = reactive({
+        username: [{ validator: validateUsername, trigger: 'blur' }],
+        password: [{ validator: validatePassword, trigger: 'blur' }],
+        passwords: [{ validator: validatePasswords, trigger: 'blur' }],
+        code: [{ validator: checkCode, trigger: 'blur' }]
+      });
+
+    /**
+     * 声明方法
+     */
+    const selectTab = data => {
     // 切换tab
-      this.menuTab.forEach((elem, index) => {
+      menuTab.forEach((elem, index) => {
         elem.current = false
       })
       // 高光
       data.current = true
 
-      this.model = data.type
-    },
-    submitForm(formName) {
-        this.$refs[formName].validate((valid) => {
+      model.value = data.type
+    };
+
+    const submitForm = formName => {
+        refs[formName].validate((valid) => {
           if (valid) {
             alert('submit!');
           } else {
@@ -140,8 +150,24 @@ export default {
             return false;
           }
         });
-      }
+      };
+
+    /**
+     * 声明周期
+     */
+    onMounted(()=>{})
+    
+    return {
+      menuTab,
+      model,
+      ruleForm,
+      rules,
+      selectTab,
+      submitForm
+    }
+
   },
+  
 }
 </script>
 
