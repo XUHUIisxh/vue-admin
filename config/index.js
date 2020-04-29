@@ -19,7 +19,16 @@ module.exports = {
     errorOverlay: true,
     notifyOnErrors: true,
     poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
-
+    proxyTable:{
+      '/devApi': {  //使用"/devApi"来代替"http://vue-admin.web-jshtml.cn/productapi" 
+        target: 'http://vue-admin.web-jshtml.cn/productapi', //源地址 
+        changeOrigin: true, //改变源 
+        pathRewrite: { 
+          //路径重写
+          '^/devApi': '' 
+          } 
+      }
+    },
     
     /**
      * Source Maps

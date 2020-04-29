@@ -45,6 +45,7 @@
 </template>
 
 <script>
+import { GetSms } from '@/api/login'
 import { reactive,ref,isRef,toRef,onMounted,watch} from '@vue/composition-api'
 import { validataEmail,validataPassword,validataCode,stripscript } from 'utils/validata'
 export default {
@@ -60,6 +61,13 @@ export default {
     root: (...) == this
     */
     let validateUsername = (rule, value, callback) => {
+
+      
+      GetSms('/getSms',{username:'1111111@qq.com',module:'login'});
+
+
+
+      
       if (value === '') {
         callback(new Error('请输入用户名'));
       } else if (validataEmail(value)) {
