@@ -106,13 +106,14 @@ export default {
      * 声明变量
      */
     // 这里面放置data数据、生命周期、自定义的函数
+    // 
     const menuTab = reactive([
         { txt: '登录', current: true ,type:'login' },
         { txt: '注册', current: false , type:'register'}
       ]);
-    
+    // 模块值
     const model = ref('login');
-
+    // 表单
     const ruleForm = reactive({
         username: '',
         password: '',
@@ -120,6 +121,7 @@ export default {
         code: ''
       });
     
+    // 验证规则
     const rules = reactive({
         username: [{ validator: validateUsername, trigger: 'blur' }],
         password: [{ validator: validatePassword, trigger: 'blur' }],
@@ -130,8 +132,8 @@ export default {
     /**
      * 声明方法
      */
-    const selectTab = data => {
     // 切换tab
+    const selectTab = data => {
       menuTab.forEach((elem, index) => {
         elem.current = false
       })
@@ -140,7 +142,7 @@ export default {
 
       model.value = data.type
     };
-
+    // 提交
     const submitForm = formName => {
         refs[formName].validate((valid) => {
           if (valid) {
@@ -165,7 +167,6 @@ export default {
       selectTab,
       submitForm
     }
-
   },
   
 }
