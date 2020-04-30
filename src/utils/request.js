@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { Message } from 'element-ui';
 
 const BASEURL = process.env.NODE_ENV === "production" ? '' : '/devApi' 
 // const BASEURL = 'http://vue-admin.web-jshtml.cn/productapi'
@@ -20,7 +21,7 @@ const service = axios.create({
  * 请求拦截
  */
 service.interceptors.request.use((config)=>{
-  console.log(BASEURL)
+  // console.log(config)
   return config;
 },(err)=>{
   return Promise.reject(err);
@@ -29,8 +30,17 @@ service.interceptors.request.use((config)=>{
 /**
  * 相应拦截
  */
-service.interceptors.response.use((config)=>{
-  return config;
+service.interceptors.response.use((response)=>{
+  // console.log(config)
+  let data = response.data
+  if(data.resCode !== 0){
+    Message.error(data.message)
+    return Promise.reject(data)
+  }else{
+    return response
+    
+    // return Promise.resolve(response)
+  }
 },(err)=>{
   return Promise.reject(err)
 })

@@ -30,13 +30,13 @@
               <el-input v-model.number="ruleForm.code"></el-input>
             </el-col>
             <el-col :span="9">
-              <el-button type='success' class="block">获取验证码</el-button>
+              <el-button type='success' class="block" @click="getSms()" :disabled="codeButtonStatus.status">{{codeButtonStatus.text}}</el-button>
             </el-col>
           </el-row>
         </el-form-item>
 
         <el-form-item>
-          <el-button type="danger" class="login_btn block" @click="submitForm('ruleForm')">提交</el-button>
+          <el-button type="danger" class="login_btn block" @click="submitForm('ruleForm')" :disabled="loginButtonStatus">{{model === 'login' ? '登录' : '注册'}}</el-button>
         </el-form-item>
         
       </el-form>
@@ -50,7 +50,7 @@ import { reactive,ref,isRef,toRef,onMounted,watch} from '@vue/composition-api'
 import { validataEmail,validataPassword,validataCode,stripscript } from 'utils/validata'
 export default {
   name: 'login',
-  setup(prop,{refs}){
+  setup(prop,{refs,root}){
   /**
     setup(props, context){
     attrs: (...) == this.$attrs
@@ -60,14 +60,8 @@ export default {
     refs: (...) == this.$refs
     root: (...) == this
     */
-    let validateUsername = (rule, value, callback) => {
-
-      
-      GetSms('/getSms',{username:'1111111@qq.com',module:'login'});
-
-
-
-      
+    // 验证邮箱
+    let validateUsername = (rule, value, callback) => {      
       if (value === '') {
         callback(new Error('请输入用户名'));
       } else if (validataEmail(value)) {
@@ -110,7 +104,7 @@ export default {
       }
     };
     /**
-     * ********************************************************************************************************************************
+     * *************************************************************************************声明  变量--------------
      * 声明变量
      */
     // 这里面放置data数据、生命周期、自定义的函数
@@ -121,6 +115,14 @@ export default {
       ]);
     // 模块值
     const model = ref('login');
+    // 登录按钮禁用状态
+    const loginButtonStatus = ref(true)
+    // 获取验证码禁用状态
+    const codeButtonStatus = reactive({
+      status:false,
+      text:'获取验证码'
+    })
+    const timer = ref(null)
     // 表单
     const ruleForm = reactive({
         username: '',
@@ -138,7 +140,7 @@ export default {
       });
 
     /**
-     * 声明方法
+     * 声明方法**************************************************************************声明  方法--------------------
      */
     // 切换tab
     const selectTab = data => {
@@ -149,19 +151,99 @@ export default {
       data.current = true
 
       model.value = data.type
+      resetFromData()
+      // updataButtonStatus()
     };
+    // 清除输入框
+    const resetFromData = () => {
+      refs.ruleForm.resetFields()
+    };
+    // 更新按钮状态
+    const updataButtonStatus = params => {
+      codeButtonStatus.status = params.status,
+      codeButtonStatus.text = params.text
+    }
+    // 发送验证码
+    const getSms = () => {
+      // if(ruleForm.username == ''){
+      //   root.$message.error('请输入邮箱账号！！');
+      // }
+      let data = {
+        username:ruleForm.username,
+        module:model.value
+      }
+      if(data.username == ''){
+        root.$message.error('请输入邮箱账号！！');
+        return
+      }
+      if(validataEmail(data.username)){
+        root.$message.error('用户名包含非法字符！！');
+        return
+      }
+      
+      // 更新按钮状态
+      updataButtonStatus({
+        status : true,
+        text:'请求中'
+      })
+
+      // 验证码发送请求
+      GetSms(data).then((result) => {
+        let data = result.data
+        root.$message({
+          message: result.data.message,
+          type: 'success'
+        });
+        // 登录或者注册按钮的禁用
+        loginButtonStatus.value = false
+        // console.log(result)
+        countDown(60)
+      }).catch((err) => {
+        console.log(err)
+      });
+      // {username:'1111111@qq.com',module:'login'}
+    }
     // 提交
     const submitForm = formName => {
-        refs[formName].validate((valid) => {
-          if (valid) {
-            alert('submit!');
-          } else {
-            console.log('error submit!!');
-            return false;
-          }
-        });
-      };
-
+      refs[formName].validate((valid) => {
+        if (valid) {
+          alert('submit!');
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    };
+    // 定时器
+    const countDown = number => {
+      // setTimeout:clearTimeout(变量)  只执行一次
+      // setInterval:clearInterval(变量))  不断的执行，需要条件才会停止
+      // 判断定时器是否存在，存在则清除
+      if(timer.value){
+        clearInterval(timer.value)
+      }
+      let time = number
+      timer.value = setInterval(() => {
+        time--;
+        if(time == 0 ){
+          clearInterval(timer.value)
+          updataButtonStatus({
+            status : false,
+            text:'再次获取'
+          })
+        }else{
+          codeButtonStatus.text = `倒计时(${time})`
+        }
+      }, 1000);
+    }
+    // 清除倒计时
+    const clearCountDown = () => {
+      updataButtonStatus({
+        status : true,
+        text:'获取验证码'
+      })
+      clearInterval(timer.value)
+    }
     /**
      * 声明周期
      */
@@ -170,6 +252,10 @@ export default {
     return {
       menuTab,
       model,
+      loginButtonStatus,
+      codeButtonStatus,
+      timer,
+      getSms,
       ruleForm,
       rules,
       selectTab,

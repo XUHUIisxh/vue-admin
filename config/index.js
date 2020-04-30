@@ -25,7 +25,7 @@ module.exports = {
         changeOrigin: true, //改变源 
         pathRewrite: { 
           //路径重写
-          '^/devApi': '' 
+          '^/devApi': ''
           }
       }
     },
