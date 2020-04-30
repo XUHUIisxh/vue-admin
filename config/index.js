@@ -26,7 +26,7 @@ module.exports = {
         pathRewrite: { 
           //路径重写
           '^/devApi': '' 
-          } 
+          }
       }
     },
     

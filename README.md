@@ -1,8 +1,12 @@
+
 # vue-admin
  vue3.0尝鲜-后台管理系统（疫情期间没事在家写点bug，精神抖擞一整天）
 ## vue3.0尝鲜包
 > 项目初始部分是按照vue2.0进行搭建，真正使用的是通过npm安装依赖包进行调用vue3.0的相关特性，以及对一些语法进行总结
+## 项目启动
+``npm install`` 下载依赖
 
+``npm run dev`` 启动项目
 ## vue3.0的安装
 1. 具体有哪些不一样呢？[vue3.0相关文档介绍](https://www.jianshu.com/p/1e09e244bdc3)
 2. Vue 官方发布了最新的3.0 API 修改草案，并在充分采纳社区的意见后，将Vue Function API 更正为 Vue Composition API，也提供了 Vue3.0 特性的尝鲜版本，提供了在Vue 2.x 能够提前体验此API的库@vue/composition-api ``意思就是说：VUE2.0也可以用Composition API`` [Composition API详解](https://vue-composition-api-rfc.netlify.com/)
