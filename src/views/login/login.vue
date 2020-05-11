@@ -5,9 +5,10 @@
       <ul class="top_menu">
         <li v-for="(tab,index) in menuTab" :key="index" :class="{'current':tab.current}" @click="selectTab(tab)">{{tab.txt}}</li>
       </ul>
+
+
       <!-- 表单 -->
       <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" class="login_form" size="medium">
-
         <el-form-item prop="username">
           <label>邮箱</label>
           <el-input type="text" v-model="ruleForm.username" autocomplete="off"></el-input>
@@ -20,14 +21,14 @@
 
         <el-form-item prop="passwords" v-if="model === 'register'">
           <label>确认输入密码</label>
-          <el-input type="passwords" v-model="ruleForm.passwords" autocomplete="off"></el-input>
+          <el-input type="password" v-model="ruleForm.passwords" autocomplete="off"></el-input>
         </el-form-item>
 
         <el-form-item prop="code">
           <label>验证码</label>
           <el-row :gutter="10">
             <el-col :span="15">
-              <el-input v-model.number="ruleForm.code"></el-input>
+              <el-input v-model="ruleForm.code"></el-input>
             </el-col>
             <el-col :span="9">
               <el-button type='success' class="block" @click="getSms()" :disabled="codeButtonStatus.status">{{codeButtonStatus.text}}</el-button>
@@ -45,7 +46,7 @@
 </template>
 
 <script>
-import { GetSms } from '@/api/login'
+import { GetSms,Register } from '@/api/login'
 import { reactive,ref,isRef,toRef,onMounted,watch} from '@vue/composition-api'
 import { validataEmail,validataPassword,validataCode,stripscript } from 'utils/validata'
 export default {
@@ -60,6 +61,8 @@ export default {
     refs: (...) == this.$refs
     root: (...) == this
     */
+
+
     // 验证邮箱
     let validateUsername = (rule, value, callback) => {      
       if (value === '') {
@@ -87,11 +90,13 @@ export default {
     };
     // 注册二次验证
     let validatePasswords = (rule, value, callback) => {
-     if(ruleForm.password != ruleForm.passwords){
-       callback(new Error('两次输入密码不一致，请重新输入'))
-     }else{
-       callback();
-     }
+      if(ruleForm.passwords === ''){
+        callback(new Error('请再次输入验证码'))
+      }else if(ruleForm.password != ruleForm.passwords){
+        callback(new Error('两次输入密码不一致，请重新输入'))
+      }else{
+        callback();
+      }
     };
     // 验证码
     let checkCode = (rule, value, callback) => {
@@ -103,11 +108,18 @@ export default {
         callback()
       }
     };
+
+
     /**
      * *************************************************************************************声明  变量--------------
      * 声明变量
      */
     // 这里面放置data数据、生命周期、自定义的函数
+
+
+
+
+
     // 
     const menuTab = reactive([
         { txt: '登录', current: true ,type:'login' },
@@ -139,9 +151,15 @@ export default {
         code: [{ validator: checkCode, trigger: 'blur' }]
       });
 
+
+
+
+
     /**
      * 声明方法**************************************************************************声明  方法--------------------
      */
+
+    
     // 切换tab
     const selectTab = data => {
       menuTab.forEach((elem, index) => {
@@ -151,8 +169,10 @@ export default {
       data.current = true
 
       model.value = data.type
+      // 重置表单
       resetFromData()
-      // updataButtonStatus()
+      // 清除按钮状态
+      clearCountDown()
     };
     // 清除输入框
     const resetFromData = () => {
@@ -189,31 +209,71 @@ export default {
 
       // 验证码发送请求
       GetSms(data).then((result) => {
-        let data = result.data
+        let resCode = result.data
         root.$message({
-          message: result.data.message,
+          message: resCode.message,
           type: 'success'
         });
         // 登录或者注册按钮的禁用
         loginButtonStatus.value = false
-        // console.log(result)
+        // console.log(resCode)
+        // root.$message({
+        //   message: `验证码已发送，验证码：${resCode.message}`,
+        //   type: 'success'
+        // });
         countDown(60)
       }).catch((err) => {
         console.log(err)
+        updataButtonStatus({
+          status : false,
+          text:'获取验证码'
+        })
       });
       // {username:'1111111@qq.com',module:'login'}
     }
     // 提交
     const submitForm = formName => {
-      refs[formName].validate((valid) => {
+      // 表单验证
+      refs.ruleForm.validate((valid) => {
         if (valid) {
-          alert('submit!');
+          //三元运算符
+          model.value === 'login' ? login() : register()
+          // alert('submit!');
         } else {
           console.log('error submit!!');
           return false;
         }
       });
     };
+    /**
+     * 登录
+     */
+    const login = () => {
+
+    }
+    /**
+     * 注册
+     */
+    const register = () => {
+      let requestData = {
+        username:ruleForm.username,
+        password:ruleForm.password,
+        code:ruleForm.code,
+      }
+      Register(requestData).then(response => {
+        let sucData = requestData.data
+        // console.log(response)
+        root.$message({
+          message:sucData.message,
+          type:'success'
+        })
+        selectTab(menuTab[0])
+      }).catch( err => {
+        // root.$message.error('注册失败！');
+        console.log(err)
+      })
+    }
+    
     // 定时器
     const countDown = number => {
       // setTimeout:clearTimeout(变量)  只执行一次
@@ -239,7 +299,7 @@ export default {
     // 清除倒计时
     const clearCountDown = () => {
       updataButtonStatus({
-        status : true,
+        status : false,
         text:'获取验证码'
       })
       clearInterval(timer.value)
